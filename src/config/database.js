@@ -8,7 +8,7 @@ const db = new sqlite3.Database(DB_FILE, (err) => {
     if (err) {
         console.error('Failed to mount SQLite database pipeline:', err.message);
     } else {
-        console.log('Connected to localized database footprint at: ${DB_FILE}');
+        console.log(`Connected to localized database footprint at: ${DB_FILE}`);
     }
 });
 
