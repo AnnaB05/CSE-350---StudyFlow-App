@@ -31,7 +31,7 @@ export async function initializeDatabaseSchema() {
 
     //creates the Task checklist schema that matches our requirements
     await dbRun(`
-      CREATE TABLE IF NOT EXISTS sessions (
+      CREATE TABLE IF NOT EXISTS tasks (
         id INTEGER PRIMARY KEY AUTOINCREMENT,
         user_id INTEGER NOT NULL,
         title TEXT NOT NULL,
@@ -40,7 +40,7 @@ export async function initializeDatabaseSchema() {
         FOREIGN KEY (user_id) REFERENCES users(id) ON DELETE CASCADE
       )
     `);
-    
+
     console.log('SQLite schema verification sequence completed successfully.');
   } catch (error) {
     console.error('CRITICAL: Structural initialization migration crashed:', error);

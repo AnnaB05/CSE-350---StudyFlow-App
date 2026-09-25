@@ -8,7 +8,7 @@ async function bootServerEngine() {
   await initializeDatabaseSchema();
 
   app.listen(PORT, () => {
-    console.log(`🚀 StudyFlow Application Core online and listening on network port: ${PORT}`);
+    console.log(`StudyFlow App Core online and listening on network port: ${PORT}`);
   });
 }
 
