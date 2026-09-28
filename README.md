@@ -50,7 +50,7 @@ StudyFlow uses a decoupled client-server web stack bundled into a local environm
 
 ### Sprint 2 – Feature Designing (10/10/2026 – 10/30/2026)
 *   [ ] Map out LocalStorage text structure layouts for task checklist sets (`Efrain`)
-*   [ ] Sketch user interface mockups for the circular clock countdown display (`Zaria`)
+*   [ ] Sketch user interface mockups for the clock countdown display (`Zaria`)
 *   [ ] Sketch design layouts for the Login box & task checklist inputs (`Karthik`)
 *   [ ] Draw functional application view-switching flowcharts & logic maps (`Christina`)
 *   [ ] Establish project master test verification plan & feature criteria sheets (`Anna`)
@@ -71,4 +71,4 @@ Whenever anyone submits a **Pull Request** targeting the `main` branch, the clou
 
 When you run the tests you will see 1 of the following outcomes: 
 *   **🟢 Passing Tests:** Unlocks the merge block and displays a green checkmark.
-*   **🔴 Failing Tests:** Permanently seals the merge block and displays a red X until the bug is resolved by the developer.
+*   **🔴 Failing Tests:** Permanently seals the merge block and displays a red X until the bug is resolved.
