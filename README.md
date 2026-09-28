@@ -44,8 +44,8 @@ StudyFlow uses a decoupled client-server web stack bundled into a local environm
 *   [ ] Audit basic competitor interfaces & trace checklist layouts (`Zaria`)
 *   [ ] Write client user journey mappings for simulated login routes (`Efrain`)
 *   [ ] Map localized browser storage tracking for checklist items (`Karthik`)
-*   [ ] Configure central GitHub code repository & branch protection controls (`Anna`)
-*   [ ] Configure group shared workflow monitoring boards & card pipelines (`Christina`)
+*   [ ] Configure central GitHub repo & branch protection controls (`Anna`)
+*   [ ] Configure group Kanban board (`Christina`)
 *   [ ] Compile master requirement list outlining core functional features (`Anna`)
 
 ### Sprint 2 – Feature Designing (10/10/2026 – 10/30/2026)
