@@ -5,7 +5,7 @@ import { dbRun, dbGet, dbAll } from '../config/database.js'; // Added dbAll to f
 const router = Router();
 
 //==========================
-// AUTHENTICATION ENDPOINTS
+// AUTHENTICATION ENDPOINTS -- basically where the user will register and login to the app
 //==========================
 
 // POST Route /api/auth/register
@@ -72,7 +72,7 @@ router.post('/login', async (req, res) => {
 });
 
 //============================
-//TASK PLANNER CRUD ENDPOINTS
+//TASK PLANNER CRUD ENDPOINTS -- where the user can create, read, update, and delete their task checklist items
 //============================
 
 //GET route: /api/auth/tasks/:userId to retrieve all checklist items for a specific user
