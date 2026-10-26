@@ -4,7 +4,7 @@ import { initializeDatabaseSchema } from './config/database.js';
 const PORT = 5000;
 
 async function bootServerEngine() {
-  // Sync the data structures cleanly prior to loading client interfaces
+  //sync the data structures cleanly prior to loading client interfaces
   await initializeDatabaseSchema();
 
   app.listen(PORT, () => {
