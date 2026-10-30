@@ -104,3 +104,64 @@ flowchart TD
 - Users can pause, resume, or cancel the timer.
 - A completion message appears when the countdown finishes.
 - Task access is restored when the session ends.
+
+
+
+## 3. Task Management Logic Map
+
+This flowchart shows how users manage their study tasks, including adding new tasks, marking tasks as complete, and deleting tasks from their checklist.
+
+```mermaid
+flowchart TD
+    A([Open Task Checklist]) --> B[Load Saved Tasks]
+    B --> C{Select an Action}
+
+    C -->|Add Task| D{Strict Mode Timer Active?}
+    D -->|Yes| E[Show Explanation]
+    E --> C
+    D -->|No| F[Enter Task Details]
+    F --> G{Task Details Valid?}
+    G -->|No| H[Show Error Message]
+    H --> F
+    G -->|Yes| I[Save New Task]
+
+    C -->|Complete Task| J[Select Task]
+    J --> K[Mark Task as Complete]
+    K --> L[Save Task Update]
+
+    C -->|Delete Task| M[Select Task to Delete]
+    M --> N{Confirm Deletion?}
+    N -->|No| C
+    N -->|Yes| O[Delete Selected Task]
+
+    I --> P[Update Task Checklist]
+    L --> P
+    O --> P
+    P --> B
+
+    C -->|Back| Q([Return to Dashboard])
+
+    R["DESIGN NOTE: Strict Mode prevents new task entry while the focus timer is active and displays an explanation."]
+    D -.-> R
+
+    classDef start fill:#E9D5F5,stroke:#222,color:#000;
+    classDef process fill:#D6EAF8,stroke:#222,color:#000;
+    classDef decision fill:#FFF0B3,stroke:#222,color:#000;
+    classDef main fill:#D5F0D7,stroke:#222,color:#000;
+    classDef note fill:#FFFFFF,stroke:#222,color:#000;
+
+    class A,Q start;
+    class B,E,F,H,J,K,M,O process;
+    class C,D,G,N decision;
+    class I,L,P main;
+    class R note;
+```
+
+### Design Notes
+
+- Users can add new tasks to their study checklist.
+- Task details are checked before a new task is saved.
+- Users can mark tasks as complete to keep track of their progress.
+- Users can delete tasks they no longer need.
+- The checklist updates after changes are saved.
+- Strict Mode prevents new task entry during an active focus session and displays an explanation.
