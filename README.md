@@ -19,9 +19,61 @@ An open-source, lightweight desktop application designed to help students optimi
     *   *Competitor gap auditing, high-fidelity Figma blueprints, and interface usability testing.*
 
 
+## What you need installed
+
+Make sure your computer has the following installed:
+1. **Node.js (v18 or higher):** Required to run the backend server, install packages, and compile the React frontend. (Includes `npm`). [You can Download Node.js here](https://nodejs.org).
+2. **Git (Optional):** Required for cloning the repository directly from GitHub rather than downloading the ZIP folder. [You can download Git here](https://git-scm.com).
+
+## Installation/Set up Guide:
+
+### 1. Clone The Project:
+Run the following in your terminal (You can use gitbash for windows, terminal for Mac/Linux) to clone the project into your computer:
+
+```bash
+git clone https://github.com
+cd CSE-350---StudyFlow-App
+```
+*(If you're using a submitted `.zip` file, extract the folder and open your terminal inside the main `CSE-350---StudyFlow-App` directory).*
+
+### 2. Install Backend Dependencies
+To install Express, SQLite3, bcyrptjs, Ject, and concurrently run the following:
+
+```bash
+npm install
+```
+
+### 3. Install Frontend Dependencies
+Run the following to navigate to the frontend subfolder and install the react packages:
+
+```bash
+cd frontend
+npm install
+```
+
+### Run StudyFlow
+Run the following to navigate back to the root directory and launch the app:
+
+```bash
+npm run studyflow
+```
+When done correctly this should:
+
+* **Backend API & SQLite Database:** Automatically boots on `http://localhost:5000` and generates `studyflow.db`.
+* **Frontend Web App:** Automatically compiles and opens in your default web browser at `http://localhost:3000`.
+
+### How to run the Automated Tests
+
+To verify that all authentication routes, password hashing checks, and task CRUD database operations pass properly, run the Jest integration test suite from the **root** folder:
+
+```bash
+npm run test
+```
+
+
 
 ## Application Architecture
-StudyFlow uses a decoupled client-server web stack bundled into a local environment layout for frictionless multi-machine development:
+StudyFlow uses a decoupled client-server web stack bundled into a local environment layout:
 *   **Frontend Client:** React.js using local functional state hooks and Context API for global timer state tracking.
 *   **Backend Server:** Node.js with an Express runtime framework hosting a clean RESTful API gateway.
 *   **Database Management:** SQLite3 - A file-bound relational database module sitting right in the root directory as `studyflow.db`.
