@@ -41,6 +41,17 @@ export async function initializeDatabaseSchema() {
       )
     `);
 
+     //creates study session history schema (new FR6 - I will update the FR document later)
+    await dbRun(`
+      CREATE TABLE IF NOT EXISTS study_sessions (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        user_id INTEGER NOT NULL,
+        duration_minutes INTEGER NOT NULL,
+        completed_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+        FOREIGN KEY (user_id) REFERENCES users (id) ON DELETE CASCADE
+      )
+    `);
+
     console.log('SQLite schema verification sequence completed successfully.');
   } catch (error) {
     console.error('CRITICAL: Structural initialization migration crashed:', error);
