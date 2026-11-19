@@ -55,6 +55,7 @@ npm install
 Run the following to navigate back to the root directory and launch the app:
 
 ```bash
+cd ..
 npm run studyflow
 ```
 When done correctly this should:

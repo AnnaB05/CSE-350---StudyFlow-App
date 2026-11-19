@@ -115,7 +115,7 @@ router.put('/tasks/:taskId', async (req, res) => {
   }
 
   try {
-    // Update the checkmark status inside the localized database row
+    //update the checkmark status inside the localized database row
     await dbRun('UPDATE tasks SET is_completed = ? WHERE id = ?', [isCompleted, taskId]);
     return res.status(200).json({ success: true, message: 'Task compilation status updated successfully.' });
   } catch (err) {
@@ -136,5 +136,46 @@ router.delete('/tasks/:taskId', async (req, res) => {
     return res.status(500).json({ error: 'Failed to clear task record item.' });
   }
 });
+
+//======================================
+// STUDY SESSION HISTORY ENDPOINTS (FR6)
+//======================================
+
+//GET route: /api/auth/sessions/:userId to retrieve all completed study sessions
+router.get('/sessions/:userId', async (req, res) => {
+  const { userId } = req.params;
+
+  try {
+    const sessions = await dbAll(
+      'SELECT * FROM study_sessions WHERE user_id = ? ORDER BY completed_at DESC',
+      [userId]
+    );
+    return res.status(200).json(sessions);
+  } catch (err) {
+    console.error('SYSTEM BREAKDOWN: Fetch sessions routine crashed:', err);
+    return res.status(500).json({ error: 'Failed to retrieve study session history.' });
+  }
+});
+
+//POST route: /api/auth/sessions to log a completed focus session
+router.post('/sessions', async (req, res) => {
+  const { userId, durationMinutes } = req.body;
+
+  if (!userId || !durationMinutes) {
+    return res.status(400).json({ error: 'Missing required userId or durationMinutes parameters.' });
+  }
+
+  try {
+    await dbRun(
+      'INSERT INTO study_sessions (user_id, duration_minutes) VALUES (?, ?)',
+      [userId, durationMinutes]
+    );
+    return res.status(201).json({ success: true, message: 'Study session logged successfully.' });
+  } catch (err) {
+    console.error('SYSTEM BREAKDOWN: Log session routine crashed:', err);
+    return res.status(500).json({ error: 'Failed to log study session.' });
+  }
+});
+
 
 export default router;

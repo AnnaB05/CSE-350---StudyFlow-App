@@ -24,6 +24,12 @@ export default function App() {
   const [tasks, setTasks] = useState([]);
   const [newTaskTitle, setNewTaskTitle] = useState('');
 
+  //Study Session analytics state (new FR6)
+  const [sessions, setSessions] = useState([]);
+
+  //quick study notepad state (new FR7)
+  const [studyNotes, setStudyNotes] = useState('');
+
   //simulated strict focus mode protection toggles (FR5)
   const [strictMode, setStrictMode] = useState(false);
   const [strictWarning, setStrictWarning] = useState(false);
@@ -37,20 +43,21 @@ export default function App() {
       intervalId = setInterval(() => {
         setSecondsLeft((prev) => prev - 1);
       }, 1000);
-    } else if (secondsLeft === 0) {
+    } else if (secondsLeft === 0 && timerActive) {
       setTimerActive(false);
       if (timerMode === 'Focus') {
-        alert('🎉 Focus Session Complete! Time for a short break.');
+        logCompletedSession(parseInt(customMinutes, 10) || 25); //log completed focus session
+        alert('Focus Session Complete! Session has been logged to your stats. Time for a short break!');
         setTimerMode('Break');
         setSecondsLeft(300); 
       } else {
         alert('⏱️ Break complete! Ready to lock back in?');
         setTimerMode('Focus');
-        setSecondsLeft(1500); 
+        setSecondsLeft((parseInt(customMinutes, 10) || 25 * 60)); 
       }
     }
     return () => clearInterval(intervalId);
-  }, [timerActive, secondsLeft, timerMode]);
+  }, [timerActive, secondsLeft, timerMode, customMinutes, activeUser]);
 
   // ===============================
   // DATABASE REST API INTERACTIONS
@@ -64,6 +71,31 @@ export default function App() {
       console.error('Database connection dropped:', err);
     }
   };
+
+    const loadUserSessions = async (userId) => {
+    try {
+      const res = await fetch(`${BACKEND_URL}/sessions/${userId}`);
+      const data = await res.json();
+      if (res.ok) setSessions(data);
+    } catch (err) {
+      console.error('Failed to load session history:', err);
+    }
+  };
+
+  const logCompletedSession = async (minutes) => {
+    if (!activeUser) return;
+    try {
+      const res = await fetch(`${BACKEND_URL}/sessions`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ userId: activeUser.id, durationMinutes: minutes })
+      });
+      if (res.ok) loadUserSessions(activeUser.id);
+    } catch (err) {
+      console.error('Failed to log session:', err);
+    }
+  };
+
 
   const handleAuthSubmit = async (e) => {
     e.preventDefault();
@@ -88,6 +120,8 @@ export default function App() {
         } else {
           setActiveUser(data.user);
           loadUserTasks(data.user.id);
+          loadUserSessions(data.user.id);
+          setStudyNotes(localStorage.getItem(`studyflow_notes_${data.user.id}`) || '');
           setCurrentView('VIEW_TIMER');
         }
       }
@@ -146,6 +180,8 @@ export default function App() {
   const handleLogout = () => {
     setActiveUser(null);
     setTasks([]);
+    setSessions([]);
+    setStudyNotes('');
     setTimerActive(false);
     setStrictMode(false);
     setStrictWarning(false);
@@ -183,6 +219,16 @@ export default function App() {
     setCurrentView(targetView);
   };
 
+  //auto-save scratchpad notes per user in localStorage (new FR7)
+  const handleNotesChange = (e) => {
+    const updatedText = e.target.value;
+    setStudyNotes(updatedText);
+    if (activeUser) {
+     localStorage.setItem(`studyflow_notes_${activeUser.id}`, updatedText);
+    }
+  };
+
+
   return (
     <div style={styles.appContainer}>
       {/* header navigation bar with conditional rendering of the login/register, timer, and task planner views */}
@@ -193,6 +239,7 @@ export default function App() {
             {/* buttons route through strict mode validator */}
             <button onClick={() => handleNavViewSwitch('VIEW_TIMER')} style={currentView === 'VIEW_TIMER' ? styles.activeNavBtn : styles.navBtn}>⏱️ Timer</button>
             <button onClick={() => handleNavViewSwitch('VIEW_TASKS')} style={currentView === 'VIEW_TASKS' ? styles.activeNavBtn : styles.navBtn}>📋 Tasks</button>
+            <button onClick={() => handleNavViewSwitch('VIEW_STATS')} style={currentView === 'VIEW_STATS' ? styles.activeNavBtn : styles.navBtn}>📊 Stats</button>
             <button onClick={handleLogout} style={styles.logoutBtn}>Logout</button>
           </div>
         )}
@@ -205,10 +252,10 @@ export default function App() {
         {/* conditional rendering of login/register, timer, and task planner views based on the currentView state variable */}
         {currentView === 'VIEW_LOGIN' && (
           <div style={styles.authCard}>
-            <h2>{isRegistering ? 'Create Student Profile' : 'Student Access Gateway'}</h2>
+            <h2>{isRegistering ? 'Create Student Profile' : 'StudyFlow Login'}</h2>
             <form onSubmit={handleAuthSubmit} style={styles.formLayout}>
               <input type="email" placeholder="Student Email Address" value={email} onChange={(e) => setEmail(e.target.value)} style={styles.inputField} required />
-              <input type="password" placeholder="Password Text Key" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.inputField} required />
+              <input type="password" placeholder="Password" value={password} onChange={(e) => setPassword(e.target.value)} style={styles.inputField} required />
               <button type="submit" style={styles.primaryActionBtn}>{isRegistering ? 'Sign Up' : 'Log In'}</button>
             </form>
             {authError && <p style={styles.errorText}>❌ {authError}</p>}
@@ -259,6 +306,42 @@ export default function App() {
                 </label>
                 {strictMode && <p style={{ fontSize: '13px', color: '#e74c3c', margin: '5px 0 0 0' }}>⚠️ Warning: Task entries are sealed while the clock runs!</p>}
               </div>
+
+              {/*quick study notepad (new FR7) */}
+              <div style={{ width: '100%', marginTop: '25px', textAlign: 'left' }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '6px' }}>
+                  <label style={{ fontWeight: 'bold', fontSize: '14px', color: '#2c3e50' }}>
+                    🗒️ Quick Study Scratchpad
+                  </label>
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setStudyNotes('');
+                      if (activeUser) localStorage.removeItem(`studyflow_notes_${activeUser.id}`);
+                    }}
+                    style={{ background: 'transparent', border: 'none', color: '#7f8c8d', fontSize: '12px', cursor: 'pointer', textDecoration: 'underline' }}
+                  >
+                    Clear Notes
+                  </button>
+                </div>
+                <textarea
+                  rows="4"
+                  placeholder="Jot down quick formulas, page numbers, or study reminders here (auto-saves)..."
+                  value={studyNotes}
+                  onChange={handleNotesChange}
+                  style={{
+                    width: '100%',
+                    boxSizing: 'border-box',
+                    padding: '10px',
+                    borderRadius: '6px',
+                    border: '1px solid #dcdde1',
+                    fontSize: '14px',
+                    fontFamily: 'inherit',
+                    resize: 'vertical',
+                    backgroundColor: '#fafafa'
+                  }}
+                />
+              </div>
             </div>
           </div>
         )}
@@ -298,17 +381,19 @@ export default function App() {
                 {tasks.length === 0 ? (
                   <p style={{ textAlign: 'center', color: '#7f8c8d' }}>No tasks yet. Start adding your study items!</p>
                 ) : (
-                  tasks.map((task) => ( 
-                    <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
-                      <input
-                        type="checkbox"
-                        checked={task.is_completed === 1}
-                        onChange={() => handleToggleTask(task.id, task.is_completed)}
-                        style={{ transform: 'scale(1.2)', cursor: 'pointer' }}
-                      />
-                      <span style={task.is_completed === 1 ? styles.taskTextCompleted : styles.taskTextActive}>
-                        {task.title}
-                      </span>
+                  tasks.map((task) => (
+                    <div key={task.id} style={styles.taskRowItem}>
+                      <div style={{ display: 'flex', alignItems: 'center', gap: '12px' }}>
+                        <input
+                          type="checkbox"
+                          checked={task.is_completed === 1}
+                          onChange={() => handleToggleTask(task.id, task.is_completed)}
+                          style={{ transform: 'scale(1.2)', cursor: 'pointer' }}
+                        />
+                        <span style={task.is_completed === 1 ? styles.taskTextCompleted : styles.taskTextActive}>
+                          {task.title}
+                        </span>
+                      </div>
                       <button onClick={() => handleDeleteTask(task.id)} style={styles.deleteTaskRowBtn}>🗑️ Delete</button>
                     </div>
                   ))
@@ -316,8 +401,65 @@ export default function App() {
               </div>
             </div>
           </div>
+          
     
         )}
+        {/*study stats & session analytics (new FR6) */}
+        {currentView === 'VIEW_STATS' && (() => {
+          const totalMinutes = sessions.reduce((sum, s) => sum + s.duration_minutes, 0);
+          const completedTasksCount = tasks.filter((t) => t.is_completed === 1).length;
+          const taskCompletionPct = tasks.length > 0 ? Math.round((completedTasksCount / tasks.length) * 100) : 0;
+
+          return(
+            <div style={styles.dashboardContainer}>
+              <div style={styles.plannerCard}>
+                <h2>📊 Study Analytics & Session History</h2>
+
+                {/* Summary Stat Cards*/}
+                <div style={{ display: 'flex', gap: '12px', margin: '20px 0' }}>
+               <div style={{ flex: 1, backgroundColor: '#ebf5fb', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#2980b9' }}>{totalMinutes}</div>
+                 <div style={{ fontSize: '13px', color: '#34495e', fontWeight: 'bold' }}>Total Focus Mins</div>
+               </div>
+               <div style={{ flex: 1, backgroundColor: '#eafaf1', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#27ae60' }}>{sessions.length}</div>
+                 <div style={{ fontSize: '13px', color: '#34495e', fontWeight: 'bold' }}>Sessions Completed</div>
+               </div>
+               <div style={{ flex: 1, backgroundColor: '#fef9e7', padding: '15px', borderRadius: '8px', textAlign: 'center' }}>
+                 <div style={{ fontSize: '28px', fontWeight: 'bold', color: '#f39c12' }}>{taskCompletionPct}%</div>
+                 <div style={{ fontSize: '13px', color: '#34495e', fontWeight: 'bold' }}>Tasks Done ({completedTasksCount}/{tasks.length})</div>
+               </div>
+             </div>
+
+             {/* VISUAL TASK PROGRESS BAR */}
+             <div style={{ marginBottom: '25px' }}>
+               <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: '13px', fontWeight: 'bold', marginBottom: '6px', color: '#2c3e50' }}>
+                 <span>Checklist Progress</span>
+                 <span>{taskCompletionPct}%</span>
+               </div>
+               <div style={{ width: '100%', height: '12px', backgroundColor: '#ecf0f1', borderRadius: '6px', overflow: 'hidden' }}>
+                 <div style={{ width: `${taskCompletionPct}%`, height: '100%', backgroundColor: '#2ecc71', transition: 'width 0.3s ease' }} />
+               </div>
+             </div>
+
+             {/* RECENT SESSIONS LIST */}
+             <h3 style={{ fontSize: '16px', color: '#2c3e50', borderBottom: '1px solid #eee', paddingBottom: '8px' }}>Recent Focus Sessions</h3>
+             <div style={styles.tasksScrollList}>
+               {sessions.length === 0 ? (
+                 <p style={{ textAlign: 'center', color: '#7f8c8d' }}>No completed focus sessions yet. Finish a timer session to log your first entry!</p>
+               ) : (
+                 sessions.map((session) => (
+                   <div key={session.id} style={styles.taskRowItem}>
+                     <span style={{ fontWeight: 'bold', color: '#2c3e50' }}>⏱️ {session.duration_minutes} Minute Focus Session</span>
+                     <span style={{ fontSize: '13px', color: '#7f8c8d' }}>{new Date(session.completed_at).toLocaleDateString()}</span>
+                   </div>
+                 ))
+               )}
+             </div>
+           </div>
+         </div>
+       );
+     })()}
       </main>
     </div>
   );
